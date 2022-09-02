@@ -1,11 +1,13 @@
 town_charter:
   type: item
   material: writable_book
-  display name: <yellow>Town Charter
+  display name: <&[item]>Town Charter
   recipes:
     1:
       type: shapeless
       input: material:writable_book|material:wheat|material:*stone|material:iron_ingot
+  lore:
+  - <&[lore]>Use on a <&[emphasis]>Lectern <&[lore]>to start a settlement!
 
 kdm_check_proximity:
   type: task

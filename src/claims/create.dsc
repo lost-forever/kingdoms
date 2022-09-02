@@ -5,12 +5,12 @@ kdm_create_kingdom_confirm:
   mechanisms:
     skull_skin: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDMxMmNhNDYzMmRlZjVmZmFmMmViMGQ5ZDdjYzdiNTVhNTBjNGUzOTIwZDkwMzcyYWFiMTQwNzgxZjVkZmJjNCJ9fX0=
   lore:
-  - <&[base]>Since you're not in a <red>Kingdom <&[base]>already,
-  - <&[base]>you can <&[emphasis]>create your own<&[base]>, with this settlement
-  - <&[base]>as its <red>Capital<&[base]>.
+  - <&[lore]>Since you're not in a <red>Kingdom <&[lore]>already,
+  - <&[lore]>you can <&[emphasis]>create your own<&[lore]>, with this settlement
+  - <&[lore]>as its <red>Capital<&[lore]>.
   - <empty>
-  - <&[base]>With a <red>Kingdom<&[base]>, you'll have more <&[emphasis]>organization<&[base]>,
-  - <&[emphasis]>expansion potential<&[base]>, and <&[emphasis]>policy options<&[base]>.
+  - <&[lore]>With a <red>Kingdom<&[lore]>, you'll have more <&[emphasis]>organization<&[lore]>,
+  - <&[emphasis]>expansion potential<&[lore]>, and <&[emphasis]>policy options<&[lore]>.
 
 kdm_create_kingdom_deny:
   type: item
@@ -19,8 +19,8 @@ kdm_create_kingdom_deny:
   mechanisms:
     skull_skin: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmViNTg4YjIxYTZmOThhZDFmZjRlMDg1YzU1MmRjYjA1MGVmYzljYWI0MjdmNDYwNDhmMThmYzgwMzQ3NWY3In19fQ==
   lore:
-  - <&[base]>This settlement will become <red>Free<&[base]>,
-  - <&[base]>but you can <&[emphasis]>spend resources <&[base]>to change this later.
+  - <&[lore]>This settlement will become <red>Free<&[lore]>,
+  - <&[lore]>but you can <&[emphasis]>spend resources <&[lore]>to change this later.
 
 kdm_creation_type:
   type: procedure
@@ -50,15 +50,18 @@ kdm_create_settlement:
   - define uuid <[data].get[uuid]>
   - define chunks <[data].get[chunks]>
   - define name <[data].get[name]>
+  - define is_kingdom <[kingdom].equals[null].not>
   # Initial flag data for the settlement
   - definemap settlement_data:
       is_capital: <[is_capital]>
       type: <[type]>
+      ruler: <[is_kingdom].if_true[null].if_false[<player>]>
       names: <list_single[<[name]>]>
       chunks: <[chunks]>
       town_charter: <[data].get[location]>
+      claims: 3
   # If town has a kingdom, add to data
-  - if <[kingdom]> != null:
+  - if <[is_kingdom]>:
     - define settlement_data <[settlement_data].with[kingdom].as[<[kingdom]>]>
   # Flag to server
   - flag server kdm.settlements.<[uuid]>:<[settlement_data]>
@@ -66,10 +69,10 @@ kdm_create_settlement:
   - foreach <[chunks]> as:chunk:
     - flag <[chunk]> kdm.claim:<[uuid]>
   # Alert player
-  - define type <proc[kdm_creation_type].context[<[kingdom].equals[null].not>|<[is_capital]>]>
+  - define type <proc[kdm_creation_type].context[<[is_kingdom]>|<[is_capital]>]>
   - define kingdom_name <[kingdom].proc[kdm_get_kingdom].get[names].last.if_null[null]>
   - narrate <empty>
-  - narrate "<green>The settlement <&[emphasis]><[name]> <green>has been created."
+  - narrate "<&[positive]>The settlement <&[emphasis]><[name]> <&[positive]>has been created."
   - narrate <proc[kdm_format_creation_description].context[<[type]>|<[kingdom_name]>]>
   - narrate "<&[base]>Consult the <&[emphasis]>Manual <&[base]>for more details."
   - narrate <empty>
@@ -124,8 +127,9 @@ kdm_create_prompts:
         positions:
           leader:
             members: <list_single[<player>]>
-    # Flag to server
+    # Flag data
     - flag server kdm.kingdoms.<[kingdom_uuid]>:<[kingdom_data]>
+    - flag <player> kdm.kingdom:<[kingdom_uuid]>
     - run kdm_create_settlement def:kingdom|<[kingdom_uuid]>|true
     on custom event id:kdm_prompt_cancel data:prompt_id:kingdom_name:
     - determine passively no_message

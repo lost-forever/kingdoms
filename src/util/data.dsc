@@ -27,8 +27,11 @@ kdm_get_kingdom:
 
 kdm_is_member:
   type: procedure
-  definitions: kingdom
+  definitions: settlement
   script:
+  - if <[settlement].get[type]> == free:
+    - determine <[settlement].get[ruler].equals[<player>]>
   - if not <player.has_flag[kdm.kingdom]>:
     - determine false
+  - define kingdom <[settlement].get[kingdom].proc[kdm_get_kingdom]>
   - determine <player.flag[kdm.kingdom].equals[<[kingdom]>]>

@@ -15,6 +15,6 @@ kdm_protect_chunk:
     on entity explodes in:chunk_flagged:kdm.claim:
     - determine <list>
   check_foreigner:
-  - if not <player.proc[kdm_is_member].context[<player.location.proc[kdm_get_kingdom_uuid]>]>:
+  - if not <proc[kdm_is_member].context[<player.location.proc[kdm_get_settlement_uuid].proc[kdm_get_settlement]>]>:
     - flag <player> kdm.foreigner expire:1m
     - cast slow_digging duration:1m amplifier:1 hide_particles no_icon
