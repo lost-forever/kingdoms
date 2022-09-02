@@ -22,9 +22,29 @@ kdm_create_kingdom_deny:
   - <&[base]>This settlement will become <red>Free<&[base]>,
   - <&[base]>but you can <&[emphasis]>spend resources <&[base]>to change this later.
 
+kdm_creation_type:
+  type: procedure
+  definitions: is_kingdom|is_capital
+  script:
+  - if <[is_kingdom]>:
+    - determine <[is_capital].if_true[capital_kingdom].if_false[kingdom]>
+  - determine capital_free
+
+kdm_format_creation_description:
+  type: procedure
+  definitions: type|name
+  script:
+  - choose <[type]>:
+    - case capital_kingdom:
+      - determine "<green>It is the <red>Capital <green>of the new <&[emphasis]><[name]> <green>kingdom."
+    - case capital_free:
+      - determine "<green>It is a <red>Free <green>settlement, functioning as its own <red>Capital<green>."
+    - default:
+      - determine "<green>Its allegiance lies with the kingdom of <&[emphasis]><[name]><green>."
+
 kdm_create_settlement:
   type: task
-  definitions: type|kingdom
+  definitions: type|kingdom|is_capital
   script:
   - define data <player.flag[kdm.creating_settlement]>
   - define uuid <[data].get[uuid]>
@@ -32,6 +52,7 @@ kdm_create_settlement:
   - define name <[data].get[name]>
   # Initial flag data for the settlement
   - definemap settlement_data:
+      is_capital: <[is_capital]>
       type: <[type]>
       names: <list_single[<[name]>]>
       chunks: <[chunks]>
@@ -45,15 +66,17 @@ kdm_create_settlement:
   - foreach <[chunks]> as:chunk:
     - flag <[chunk]> kdm.claim:<[uuid]>
   # Alert player
+  - define type <proc[kdm_creation_type].context[<[kingdom].equals[null].not>|<[is_capital]>]>
+  - define kingdom_name <[kingdom].proc[kdm_get_kingdom].get[names].last.if_null[null]>
   - narrate <empty>
   - narrate "<green>The settlement <&[emphasis]><[name]> <green>has been created."
-  - if <[kingdom]> != null:
-    - define kingdom_name <server.flag[kdm.kingdoms.<[kingdom]>].get[names].last>
-    - narrate "<green>It is the <red>Capital <green>of the new <&[emphasis]><[kingdom_name]> <green>kingdom."
+  - narrate <proc[kdm_format_creation_description].context[<[type]>|<[kingdom_name]>]>
   - narrate "<&[base]>Consult the <&[emphasis]>Manual <&[base]>for more details."
   - narrate <empty>
   # Remove temporary data
   - flag <player> kdm.creating_settlement:!
+  # Fire custom events
+  - customevent id:kdm_create context:[settlement=<[settlement_data]>;type=<[type]>;kingdom_name=<[kingdom_name]>]
 
 kdm_starting_chunks:
   type: procedure
@@ -64,23 +87,21 @@ kdm_create_prompts:
   type: world
   finish_free:
   - define data <player.flag[kdm.creating_settlement]>
-  - run kdm_create_settlement def:free|null
+  - run kdm_create_settlement def:free|null|true
   events:
     after custom event id:kdm_prompt_finish data:prompt_id:settlement_name:
     # THe UUID of the settlement
     - define uuid <util.random_uuid>
-    # The settlement's starting chunks around where the charter was placed
-    - define chunks <proc[kdm_starting_chunks]>
     # If the user isn't part of a kingdom, prompt them to create one
     - if not <player.has_flag[kdm.kingdom]>:
       - flag <player> kdm.creating_settlement.uuid:<[uuid]>
-      - flag <player> kdm.creating_settlement.chunks:<[chunks]>
       - flag <player> kdm.creating_settlement.name:<context.text>
       - run kdm_choice "def:create_kingdom|Create a Kingdom?|kdm_create_kingdom_confirm|kdm_create_kingdom_deny"
     - else:
-      - run kdm_create_settlement def:kingdom|<player.flag[kdm.kingdom]>
+      - run kdm_create_settlement def:kingdom|<player.flag[kdm.kingdom]>|false
     after custom event id:kdm_prompt_cancel data:prompt_id:settlement_name:
     - define town_charter <player.flag[kdm.creating_settlement.location]>
+    - inventory clear d:<[town_charter].inventory>
     - flag <[town_charter]> kdm.town_charter:!
     - flag <player> kdm.creating_settlement:!
     after custom event id:kdm_choice data:choice_id:create_kingdom:
@@ -105,7 +126,7 @@ kdm_create_prompts:
             members: <list_single[<player>]>
     # Flag to server
     - flag server kdm.kingdoms.<[kingdom_uuid]>:<[kingdom_data]>
-    - run kdm_create_settlement def:kingdom|<[kingdom_uuid]>
+    - run kdm_create_settlement def:kingdom|<[kingdom_uuid]>|true
     on custom event id:kdm_prompt_cancel data:prompt_id:kingdom_name:
     - determine passively no_message
     - narrate "<&[error]>Kingdom creation cancelled; creating free settlement..."
