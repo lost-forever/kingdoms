@@ -6,7 +6,8 @@ kdm_protect_chunk:
     on player breaks block flagged:kdm.foreigner in:chunk_flagged:kdm.claim:
     - if <context.material.name> == chest:
       - determine cancelled
-    - inventory adjust slot:hand durability:<player.item_in_hand.durability.add[50]>
+    - if <player.item_in_hand.repairable>:
+      - inventory adjust slot:hand durability:<player.item_in_hand.durability.add[50]>
     - determine nothing
     on player places block in:chunk_flagged:kdm.claim:
     - inject kdm_protect_chunk.check_foreigner

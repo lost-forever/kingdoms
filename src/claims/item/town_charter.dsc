@@ -33,9 +33,9 @@ kdm_check_starting_chunks:
 kdm_town_charter_fn:
   type: world
   events:
-    on player right clicks lectern with:town_charter:
-    # Cancel if this lectern is already a town charter or if it's not empty
-    - if <context.location.has_flag[kdm.town_charter]> || <context.location.lectern_page> != -1:
+    on player right clicks lectern location_flagged:!kdm.town_charter with:town_charter:
+    # Cancel if the lectern is not empty
+    - if <context.location.lectern_page> != -1:
       - determine cancelled
     - inject lf_discord_check_link_cancel
     - inject kdm_check_proximity
@@ -46,6 +46,9 @@ kdm_town_charter_fn:
     - flag <player> kdm.creating_settlement.chunks:<[chunks]>
     - flag <context.location> kdm.town_charter
     - run kdm_prompt "def:settlement_name|Settlement Name"
+    on player right clicks lectern location_flagged:kdm.town_charter:
+    # TODO Town Charter GUI
+    - determine cancelled
     on player takes item from lectern location_flagged:kdm.town_charter:
     - determine cancelled
     on player breaks block location_flagged:kdm.town_charter:

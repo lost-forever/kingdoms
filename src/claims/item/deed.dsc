@@ -34,7 +34,6 @@ kdm_deed_fn:
       - narrate "<&[error]>You must claim chunks adjacent to already-claimed ones."
       - stop
     # Stop if there is more than one settlement in the adjacent chunks
-    - narrate <[chunks].parse[flag[kdm.claim]].deduplicate>
     - if <[chunks].size> > 1 and <[chunks].parse[flag[kdm.claim]].deduplicate> > 1:
       - narrate "<&[error]>Multiple settlements are adjacent to this area."
       - stop

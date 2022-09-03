@@ -44,7 +44,7 @@ kdm_format_creation_description:
 
 kdm_create_settlement:
   type: task
-  definitions: type|kingdom|is_capital
+  definitions: type|kingdom|is_capital|is_ruler
   script:
   - define data <player.flag[kdm.creating_settlement]>
   - define uuid <[data].get[uuid]>
@@ -55,7 +55,7 @@ kdm_create_settlement:
   - definemap settlement_data:
       is_capital: <[is_capital]>
       type: <[type]>
-      ruler: <[is_kingdom].if_true[null].if_false[<player>]>
+      ruler: <[is_ruler].if_true[<player>].if_false[null]>
       names: <list_single[<[name]>]>
       chunks: <[chunks]>
       town_charter: <[data].get[location]>
@@ -90,7 +90,7 @@ kdm_create_prompts:
   type: world
   finish_free:
   - define data <player.flag[kdm.creating_settlement]>
-  - run kdm_create_settlement def:free|null|true
+  - run kdm_create_settlement def:free|null|true|true
   events:
     after custom event id:kdm_prompt_finish data:prompt_id:settlement_name:
     # THe UUID of the settlement
@@ -101,7 +101,8 @@ kdm_create_prompts:
       - flag <player> kdm.creating_settlement.name:<context.text>
       - run kdm_choice "def:create_kingdom|Create a Kingdom?|kdm_create_kingdom_confirm|kdm_create_kingdom_deny"
     - else:
-      - run kdm_create_settlement def:kingdom|<player.flag[kdm.kingdom]>|false
+      - define is_ruler <player.flag[kdm.kingdom].get[positions.leader.members].contains[<player>].not>
+      - run kdm_create_settlement def:kingdom|<player.flag[kdm.kingdom]>|false|<[is_ruler]>
     after custom event id:kdm_prompt_cancel data:prompt_id:settlement_name:
     - define town_charter <player.flag[kdm.creating_settlement.location]>
     - inventory clear d:<[town_charter].inventory>
@@ -130,7 +131,7 @@ kdm_create_prompts:
     # Flag data
     - flag server kdm.kingdoms.<[kingdom_uuid]>:<[kingdom_data]>
     - flag <player> kdm.kingdom:<[kingdom_uuid]>
-    - run kdm_create_settlement def:kingdom|<[kingdom_uuid]>|true
+    - run kdm_create_settlement def:kingdom|<[kingdom_uuid]>|true|false
     on custom event id:kdm_prompt_cancel data:prompt_id:kingdom_name:
     - determine passively no_message
     - narrate "<&[error]>Kingdom creation cancelled; creating free settlement..."
