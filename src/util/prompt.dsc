@@ -4,8 +4,8 @@ kdm_prompt_item:
   material: writable_book
   lore:
   - <dark_aqua>Rename <&[base]>to input text
-  - <dark_aqua>Click <&[base]>to <green>confirm
-  - <&[base]>Exit to <red>cancel
+  - <dark_aqua>Click <&[base]>to <&[positive]>confirm
+  - <&[base]>Exit to <&[negative]>cancel
 
 kdm_prompt_inventory:
   type: inventory

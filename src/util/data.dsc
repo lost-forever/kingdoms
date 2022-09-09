@@ -25,13 +25,27 @@ kdm_get_kingdom:
   script:
   - determine <server.flag[kdm.kingdoms.<[uuid]>]>
 
+__kdm_player_data_checks:
+  type: task
+  definitions: settlement
+  script:
+  - if not <player.has_flag[kdm.kingdom]>:
+    - determine false
+  - if <[settlement].get[type]> == free:
+    - determine <[settlement].get[ruler].equals[<player>]>
+  - define kingdom <[settlement].get[kingdom].proc[kdm_get_kingdom]>
+
+kdm_is_ruler:
+  type: procedure
+  definitions: settlement
+  script:
+  - inject __kdm_player_data_checks
+  - determine <[kingdom].get[positions.leader.members].contains[<player>]>
+
 kdm_is_member:
   type: procedure
   definitions: settlement
   script:
-  - if <[settlement].get[type]> == free:
-    - determine <[settlement].get[ruler].equals[<player>]>
-  - if not <player.has_flag[kdm.kingdom]>:
-    - determine false
-  - define kingdom <[settlement].get[kingdom].proc[kdm_get_kingdom]>
+  - inject __kdm_player_data_checks
   - determine <player.flag[kdm.kingdom].equals[<[kingdom]>]>
+

@@ -37,13 +37,12 @@ kdm_deed_fn:
     - if <[chunks].size> > 1 and <[chunks].parse[flag[kdm.claim]].deduplicate> > 1:
       - narrate "<&[error]>Multiple settlements are adjacent to this area."
       - stop
-
-    # TODO: Check if settlement's ruler is the player, or if they are the ruler of its kingdom (if it has one)
-    #- if <[chunk].flag[kdm.claim].proc[kdm_get_settlement]>
-
     - define chunk <[chunks].first>
     - define uuid <[chunk].flag[kdm.claim]>
     - define settlement <[uuid].proc[kdm_get_settlement]>
+    # Stop if player isn't qualified to claim this chunk
+    - if not <[settlement].proc[kdm_is_ruler]>:
+      - stop
     # Stop if the settlement doesn't have any claims left
     - if <[settlement].get[claims]> <= 0:
       - narrate "<&[error]>This settlement doesn't have any claims left."
